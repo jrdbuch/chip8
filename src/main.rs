@@ -10,7 +10,7 @@ use std::path::Path;
 pub mod drivers;
 pub mod chip8;
 
-use drivers::DisplayDriver;
+use drivers::{KeyboardDriver, DisplayDriver};
 use chip8::Chip8;
 
 const PIXEL_WIDTH: u32 = 32;
@@ -20,41 +20,38 @@ const DISPLAY_SCALE: u32 = 10;
 fn main() {
     let sdl = sdl2::init().unwrap();
 
-    let mut d = DisplayDriver::new(&sdl, DISPLAY_SCALE, PIXEL_WIDTH, PIXEL_HEIGHT);
+    let mut disp = DisplayDriver::new(&sdl, DISPLAY_SCALE, PIXEL_WIDTH, PIXEL_HEIGHT);
+    let mut kb = KeyboardDriver::new(&sdl);
     let mut chip8 = Chip8::new();
 
     let fp: &Path = Path::new("pong.chp8");
     chip8.load_ROM(fp);
 
-    // d.draw_pixel(10, 10, Color::RGB(0,0, 0));
-    // d.draw_pixel(11, 11, Color::RGB(0,0, 0));
-    // d.update_display();
-
-    // let surface = Surface::new(512, 512, PixelFormatEnum::RGB24).unwrap();
-    // let texture = Surface::from_data(&'a mut [u8], width: u32, height: u32, pitch: u32, format: PixelFormatEnum)
-    // let surface = Surface::from_data(&mut buffer, 100, 50, 300, PixelFormatEnum::RGB24).unwrap();
-
-    // let texture = Surface::from_data(&mut buffer, 100, 50, 100*3, PixelFormatEnum::RGB24)
-        // .as_texture(canvas.texture_creator());
-
-    // let texture = texture_creator.create_texture_from_surface(surface).unwrap();
-
-    // canvas.copy(&texture,None,None).unwrap();
-    // canvas.present();
-
-    //
-    // Surface::from_data(data: &'a mut [u8], width: u32, height: u32, pitch: u32, format: pixels::PixelFormatEnum);`
-
-    let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
-        for event in event_pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit {..} => break 'main,
-                _ => {},
+
+        kb.update();
+
+        if kb.exit {
+            break 'main;
+        }
+
+        chip8.exec_cycle();
+
+        // draw display memory to screen
+        for (x, row) in chip8.display_memory.iter().enumerate() {
+            for (y, col) in row.iter().enumerate() {
+
+                let color: Color = match col {
+                    1 => Color::BLACK,
+                    _ => Color::RED,
+                };
+
+                disp.draw_pixel(y as i32, x as i32, color);
             }
         }
 
-        // render window contents here
+        disp.update_display();
     }
+
     println!("Hello, world!");
 }

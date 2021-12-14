@@ -13,9 +13,26 @@ const ROM_START_ADDRESS: u16 = 0x200;
 pub const PIXEL_WIDTH: usize = 32;
 pub const PIXEL_HEIGHT: usize = 64;
 
-enum Opcode {
+const FONT_SET: [u8; 80] = [
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+];
 
-}
+type Opcode = u16;
 
 // enum opcode {
 //     cls,
@@ -34,7 +51,7 @@ pub struct Chip8 {
     index_register: u16,
     delay_timer: u8,
     sound_timer: u8,
-    display_memory: [[u32; PIXEL_HEIGHT]; PIXEL_WIDTH],
+    pub display_memory: [[u32; PIXEL_HEIGHT]; PIXEL_WIDTH],
 }
 
 impl Chip8 {
@@ -67,19 +84,30 @@ impl Chip8 {
 
     // load fontset into memory at predefined location
     fn load_fontset(&mut self) {
-
+        self.memory[..80].copy_from_slice(&FONT_SET);
     }
 
-    fn exec_cycle() {
+    pub fn exec_cycle(&mut self) {
         // fetch next opcode at PC
-
+        let opcode = self.get_next_opcode();
+        // println!("{:#01x}", opcode);
         // decode instruction
 
         // handle timers
     }
 
+    fn get_next_opcode(&mut self) -> u16 {
+        let b1: u8 = self.memory[self.pc as usize];
+        self.pc += 1;
+        let b2: u8 = self.memory[self.pc as usize];
+        self.pc += 1;
+
+        let opcode = ((b1 as u16) << 8) | b2 as u16;
+
+        opcode
+    }
+
     fn handle_opcode(&mut self, opcode: Opcode) {
 
     }
-
 }
