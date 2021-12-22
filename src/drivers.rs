@@ -52,15 +52,11 @@ impl DisplayDriver {
     }
 }
 
-
-
-
-
 pub struct KeyboardDriver {
     event_pump: EventPump,
     key_map: HashMap<Keycode, Keycode>,
     key_state: HashMap<Keycode, bool>,
-    pub exit: bool,
+    pub exit_requested: bool,
 }
 
 impl KeyboardDriver {
@@ -104,29 +100,27 @@ impl KeyboardDriver {
             (Keycode::F, false),
         ]);
 
-        let exit = false;
+        let exit_requested = false;
 
-        KeyboardDriver{event_pump, key_map, key_state, exit}
+        KeyboardDriver{event_pump, key_map, key_state, exit_requested}
     }
 
     pub fn update(&mut self) {
         let p = &mut self.event_pump;
         for event in p.poll_iter() {
             match event {
-                Event::Quit {..} => self.exit = true,
+                Event::Quit {..} => self.exit_requested = true,
                 Event::KeyDown {keycode, ..} => {
-                    // match keycode {
-                    //     Some(code) => {
-                    //         // self.update_key_state(code, true);
-                    //         let key_mapped = self.key_map.get(&code);
-                    //         match key_mapped {
-                    //             Some(k) => {self.key_state.insert(*k, true); println!("State Updated Down");},
-                    //             None => (),
-                    //         }
-                    //     },
-                    //     None => continue,
-                    // }
-                    self.test(keycode);
+                    match keycode {
+                        Some(code) => {
+                            let key_mapped = self.key_map.get(&code);
+                            match key_mapped {
+                                Some(k) => {self.key_state.insert(*k, true); println!("State Updated Down");},
+                                None => (),
+                            }
+                        },
+                        None => continue,
+                    }
                 } 
                 Event::KeyUp {keycode, ..} => {
                     match keycode {
@@ -143,20 +137,6 @@ impl KeyboardDriver {
                 } 
                 _ => (),
             }
-        }
-    }
-
-    fn test(&mut self, kc: Option<Keycode>) {
-        match kc {
-          Some(kc) => {
-            // self.update_key_state(code, true);
-            let key_mapped = self.key_map.get(&kc);
-            match key_mapped {
-                Some(k) => {self.key_state.insert(*k, true); println!("State Updated Down");},
-                None => (),
-                }
-            },
-            None => (),
         }
     }
 }

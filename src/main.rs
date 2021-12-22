@@ -20,18 +20,22 @@ const DISPLAY_SCALE: u32 = 10;
 fn main() {
     let sdl = sdl2::init().unwrap();
 
+    // init drivers
     let mut disp = DisplayDriver::new(&sdl, DISPLAY_SCALE, PIXEL_WIDTH, PIXEL_HEIGHT);
     let mut kb = KeyboardDriver::new(&sdl);
+
+    // init chip8 VM
     let mut chip8 = Chip8::new();
 
-    let fp: &Path = Path::new("pong.chp8");
+    // let fp: &Path = Path::new("pong.chp8");
+    let fp: &Path = Path::new("ibm_logo.chp8");
     chip8.load_ROM(fp);
 
     'main: loop {
 
         kb.update();
 
-        if kb.exit {
+        if kb.exit_requested {
             break 'main;
         }
 
