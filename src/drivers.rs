@@ -52,10 +52,13 @@ impl DisplayDriver {
     }
 }
 
+pub type KeyState = HashMap<Keycode, bool>;
+type KeyMap = HashMap<Keycode, Keycode>;
+
 pub struct KeyboardDriver {
     event_pump: EventPump,
-    key_map: HashMap<Keycode, Keycode>,
-    key_state: HashMap<Keycode, bool>,
+    key_map: KeyMap,
+    pub key_state: KeyState,
     pub exit_requested: bool,
 }
 
@@ -137,6 +140,50 @@ impl KeyboardDriver {
                 } 
                 _ => (),
             }
+        }
+    }
+
+    pub fn int_to_keycode(val: u8) -> Option<Keycode> {
+        match val {
+            0 => Some(Keycode::Num0),
+            1 => Some(Keycode::Num1),
+            2 => Some(Keycode::Num2),
+            3 => Some(Keycode::Num3),
+            4 => Some(Keycode::Num4),
+            5 => Some(Keycode::Num5),
+            6 => Some(Keycode::Num6),
+            7 => Some(Keycode::Num7),
+            8 => Some(Keycode::Num8),
+            9 => Some(Keycode::Num9),
+            0xA => Some(Keycode::A),
+            0xB => Some(Keycode::B),
+            0xC => Some(Keycode::C),
+            0xD => Some(Keycode::D),
+            0xE => Some(Keycode::E),
+            0xF => Some(Keycode::F),
+            _ => None,
+        }
+    }
+    
+    pub fn keycode_to_int(kc: &Keycode) -> Option<u8> {
+        match *kc {
+            Keycode::Num0 => Some(0),
+            Keycode::Num1 => Some(1),
+            Keycode::Num2 => Some(2),
+            Keycode::Num3 => Some(3),
+            Keycode::Num4 => Some(4),
+            Keycode::Num5 => Some(5),
+            Keycode::Num6 => Some(6),
+            Keycode::Num7 => Some(7),
+            Keycode::Num8 => Some(8),
+            Keycode::Num9 => Some(9),
+            Keycode::A => Some(0xA),
+            Keycode::B => Some(0xB),
+            Keycode::C => Some(0xC),
+            Keycode::D => Some(0xD),
+            Keycode::E => Some(0xE),
+            Keycode::F => Some(0xF),
+            _ => None,
         }
     }
 }
