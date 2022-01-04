@@ -1,15 +1,12 @@
 use std::fmt;
-use std::fmt::Display;
 use std::path::Path;
 use std::fs;
 use rand::Rng;
 use crate::drivers::{KeyState, KeyboardDriver};
-use sdl2::keyboard::Keycode;
 use std::thread::sleep;
 use std::time::Duration;
 use crate::utils::*;
 
-type FontChar = [u8; 5];
 type OpCode = u16;
 
 pub const PIXEL_WIDTH: usize = 64;
@@ -163,7 +160,15 @@ impl Chip8 {
             // Adds NN to VX. (Carry flag is not changed);
             [7, x, _, _]        => { 
                 let overflow_res = addition_with_overflow(self.registers[x as usize], nn as u8);
+
+                // let Vx: u8 = ((op & 0x0F00) >> 8) as u8;
+                // let byte: u8 = (op & 0x00FF) as u8;
+                // let res1 = self.registers[Vx as usize] + byte;
+
                 self.registers[x as usize] = overflow_res.val;
+
+                // assert_eq!!{}", res1, self.registers[x as usize]);
+
             },
                 
             // Sets VX to the value of VY.
@@ -259,9 +264,32 @@ impl Chip8 {
 
             // Stores the binary-coded decimal representation of VX,
             [0xF, x, 3, 3]      => {
-                for (i, dig) in convert_to_binary_encoded_decimal(self.registers[x as usize]).into_iter().enumerate() {
+
+                let dec = to_binary_encoded_decimal(self.registers[x as usize], 3);
+
+                for (i, dig) in dec.into_iter().rev().enumerate() {
                     self.memory[(self.index_register as usize) + i] = dig;
                 }
+
+                let res0 = to_binary_encoded_decimal(self.registers[x as usize], 3);
+                println!("FX33 reg {} mem[i] {} mem[i+1] {} mem[i+2] {}",self.registers[x as usize], res0[0], res0[1], res0[2]);
+
+                let Vx = (op & 0x0F00) >> 8;
+                let mut value = self.registers[Vx as usize];
+            
+                // Ones-place
+                self.memory[(self.index_register + 2) as usize] = value % 10;
+                println!("ones correct {}", value % 10);
+                value /= 10;
+            
+                // Tens-place
+                self.memory[(self.index_register + 1) as usize] = value % 10;
+                println!("tens correct {}", value % 10);
+                value /= 10;
+            
+                // Hundreds-place
+                self.memory[(self.index_register) as usize] = value % 10;
+                println!("hund correct {}", value % 10);
             },
 
             // Stores from V0 to VX (including VX) in memory, starting at address I. 

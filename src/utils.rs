@@ -39,12 +39,20 @@ pub fn subtract_with_overflow(a: u8, b: u8) -> ArithmeticOverflow {
     ArithmeticOverflow{val: sub as u8, overflowed}
 }
 
-pub fn convert_to_binary_encoded_decimal(val: u8) -> [u8; 3] {
-    let mut ret_arr: [u8; 3] = [0; 3];
+pub fn to_binary_encoded_decimal(val: u8, len: usize) -> Vec<u8> {
+    let mut vec = Vec::new();
 
-    for (i, int_char) in val.to_string().chars().enumerate() {
-        ret_arr[i] = int_char.to_digit(10).unwrap() as u8;
+    // let mut ret_arr: [u8; 3] = [0; 3];
+
+    for int_char in val.to_string().chars() {
+        vec.push(int_char.to_digit(10).unwrap() as u8);
     }
 
-    ret_arr
+    // pad front with zeros
+    let pad_len = len - vec.len();
+    for _ in 0..pad_len {
+        vec.push(0);
+    }
+
+    vec
 }
