@@ -4,9 +4,8 @@ use sdl2::video::Window;
 use sdl2::surface::Surface; 
 use sdl2::rect::Rect;
 use std::path::Path;
+use std::fs;
 
-// mod chip8;
-// use chip8::{PIXEL_HEIGHT, PIXEL_WIDTH};
 pub mod drivers;
 pub mod chip8;
 pub mod utils;
@@ -29,9 +28,10 @@ fn main() {
     let mut chip8 = Chip8::new();
 
     let fp: &Path = Path::new("pong.chp8");
+    let rom = fs::read(fp).unwrap();
     // let fp: &Path = Path::new("ibm_logo.chp8");
     // let fp: &Path = Path::new("test_opcode.ch8");
-    chip8.load_rom(fp);
+    chip8.load_rom(rom);
 
     'main: loop {
 

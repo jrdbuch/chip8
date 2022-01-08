@@ -8,6 +8,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::collections::HashMap;
 
+
 pub struct DisplayDriver {
     // sdl_context: Sdl,
     canvas: Canvas<Window>,
@@ -48,12 +49,57 @@ impl DisplayDriver {
     }
 
     pub fn update_display(&mut self) {
+        // self.canvas.clear();
         self.canvas.present();
     }
 }
 
 pub type KeyState = HashMap<Keycode, bool>;
+
+pub fn create_key_state() -> KeyState {
+    HashMap::from([
+        (Keycode::Num1, false),
+        (Keycode::Num2, false),
+        (Keycode::Num3, false),
+        (Keycode::C, false),
+        (Keycode::Num4, false),
+        (Keycode::Num5, false),
+        (Keycode::Num6, false),
+        (Keycode::D, false),
+        (Keycode::Num7, false),
+        (Keycode::Num8, false),
+        (Keycode::Num9, false),
+        (Keycode::E, false),
+        (Keycode::A, false),
+        (Keycode::Num0, false),
+        (Keycode::B, false),
+        (Keycode::F, false),
+    ])
+}
+
 type KeyMap = HashMap<Keycode, Keycode>;
+
+pub fn create_key_map() -> KeyMap {
+    HashMap::from([
+        (Keycode::Num1, Keycode::Num1),
+        (Keycode::Num2, Keycode::Num2),
+        (Keycode::Num3, Keycode::Num3),
+        (Keycode::Num4,  Keycode::C),   
+        (Keycode::Q,    Keycode::Num4),
+        (Keycode::W,    Keycode::Num5),
+        (Keycode::E,    Keycode::Num6),
+        (Keycode::R,    Keycode::D),   
+        (Keycode::A,    Keycode::Num7),
+        (Keycode::S,    Keycode::Num8),
+        (Keycode::D,    Keycode::Num9),
+        (Keycode::F,    Keycode::E),  
+        (Keycode::Z,    Keycode::A),   
+        (Keycode::X,    Keycode::Num0),
+        (Keycode::C,    Keycode::B),   
+        (Keycode::V,    Keycode::F),   
+    ])
+}
+
 
 pub struct KeyboardDriver {
     event_pump: EventPump,
@@ -62,46 +108,12 @@ pub struct KeyboardDriver {
     pub exit_requested: bool,
 }
 
+
 impl KeyboardDriver {
     pub fn new(sdl: &Sdl) -> KeyboardDriver {
         let event_pump = sdl.event_pump().unwrap();
-        let key_map = HashMap::from([
-            (Keycode::Num1, Keycode::Num1),
-            (Keycode::Num2, Keycode::Num2),
-            (Keycode::Num3, Keycode::Num3),
-            (Keycode::Num4,  Keycode::C),   
-            (Keycode::Q,    Keycode::Num4),
-            (Keycode::W,    Keycode::Num5),
-            (Keycode::E,    Keycode::Num6),
-            (Keycode::R,    Keycode::D),   
-            (Keycode::A,    Keycode::Num7),
-            (Keycode::S,    Keycode::Num8),
-            (Keycode::D,    Keycode::Num9),
-            (Keycode::F,    Keycode::E),  
-            (Keycode::Z,    Keycode::A),   
-            (Keycode::X,    Keycode::Num0),
-            (Keycode::C,    Keycode::B),   
-            (Keycode::V,    Keycode::F),   
-        ]);
-
-        let key_state = HashMap::from([
-            (Keycode::Num1, false),
-            (Keycode::Num2, false),
-            (Keycode::Num3, false),
-            (Keycode::C, false),
-            (Keycode::Num4, false),
-            (Keycode::Num5, false),
-            (Keycode::Num6, false),
-            (Keycode::D, false),
-            (Keycode::Num7, false),
-            (Keycode::Num8, false),
-            (Keycode::Num9, false),
-            (Keycode::E, false),
-            (Keycode::A, false),
-            (Keycode::Num0, false),
-            (Keycode::B, false),
-            (Keycode::F, false),
-        ]);
+        let key_map = create_key_map();
+        let key_state = create_key_state();
 
         let exit_requested = false;
 
@@ -128,7 +140,6 @@ impl KeyboardDriver {
                 Event::KeyUp {keycode, ..} => {
                     match keycode {
                         Some(code) => {
-                            // self.update_key_state(code, false);
                             let key_mapped = self.key_map.get(&code);
                             match key_mapped {
                                 Some(k) => {self.key_state.insert(*k, false); println!("State Update Up");},
@@ -143,7 +154,7 @@ impl KeyboardDriver {
         }
     }
 
-    pub fn int_to_keycode(val: u8) -> Option<Keycode> {
+    pub fn int_to_key(val: u8) -> Option<Keycode> {
         match val {
             0 => Some(Keycode::Num0),
             1 => Some(Keycode::Num1),
@@ -165,7 +176,7 @@ impl KeyboardDriver {
         }
     }
     
-    pub fn keycode_to_int(kc: &Keycode) -> Option<u8> {
+    pub fn key_to_int(kc: &Keycode) -> Option<u8> {
         match *kc {
             Keycode::Num0 => Some(0),
             Keycode::Num1 => Some(1),
@@ -186,4 +197,8 @@ impl KeyboardDriver {
             _ => None,
         }
     }
+}
+
+pub struct SoundDriver {
+
 }

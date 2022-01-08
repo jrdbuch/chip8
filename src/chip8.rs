@@ -7,6 +7,10 @@ use std::thread::sleep;
 use std::time::Duration;
 use crate::utils::*;
 
+#[cfg(test)]
+#[path = "./chip8_tests.rs"]
+mod chip8_tests;
+
 type OpCode = u16;
 
 pub const PIXEL_WIDTH: usize = 64;
@@ -34,12 +38,6 @@ const FONT_SET: [u8; 80] = [
 ];
 
 
-#[derive(fmt::Debug)]
-struct InvalideOpCode {
-    details: String
-}
-
-
 pub struct Chip8 {
     memory: [u8; 4096], 
     registers: [u8; 16],
@@ -52,6 +50,7 @@ pub struct Chip8 {
     pub display_memory: [[u32; PIXEL_WIDTH]; PIXEL_HEIGHT],
     pub draw_flag: bool,
 }
+
 
 impl Chip8 {
     pub fn new() -> Chip8{
@@ -73,10 +72,8 @@ impl Chip8 {
         chip8
     }
 
-    pub fn load_rom(&mut self, path: &Path) {
+    pub fn load_rom(&mut self, rom: Vec<u8>) {
         // load into memory
-        let rom: Vec<u8> = fs::read(path).unwrap();
-
         for (pos, e) in rom.iter().enumerate() {
             self.memory[pos+ROM_START_ADDRESS as usize] = *e;
         }
@@ -89,15 +86,14 @@ impl Chip8 {
 
     pub fn exec_cycle(&mut self, key_state: &KeyState) {
         self.draw_flag = false;
+
         // fetch next opcode at PC
-        // println!("\n\npc start of cycle {:?}", self.pc);
         let opcode = self.get_next_opcode();
-        // println!("pc after get next opcode {:?}", self.pc);
 
         // println!("Opcode {:?}", opcode);
+
         // decode instruction
         self.handle_opcode(opcode, key_state);
-        // println!("pc after handle oppcode {:?}", self.pc);
         
         // handle timers
         if self.delay_timer > 0 {
@@ -131,7 +127,7 @@ impl Chip8 {
         let nn = get_first_n_nibbles(op, 2) as u8;
         let nnn = get_first_n_nibbles(op, 3);
 
-        println!("NIBS {:#x} {:#x} {:#x} {:#x}", nibs[0], nibs[1], nibs[2], nibs[3]);
+        // println!("NIBS {:#x} {:#x} {:#x} {:#x}", nibs[0], nibs[1], nibs[2], nibs[3]);
 
         match nibs {
             [0, 0, 0xE, 0]      => self.clear_screen(),
@@ -160,15 +156,7 @@ impl Chip8 {
             // Adds NN to VX. (Carry flag is not changed);
             [7, x, _, _]        => { 
                 let overflow_res = addition_with_overflow(self.registers[x as usize], nn as u8);
-
-                // let Vx: u8 = ((op & 0x0F00) >> 8) as u8;
-                // let byte: u8 = (op & 0x00FF) as u8;
-                // let res1 = self.registers[Vx as usize] + byte;
-
                 self.registers[x as usize] = overflow_res.val;
-
-                // assert_eq!!{}", res1, self.registers[x as usize]);
-
             },
                 
             // Sets VX to the value of VY.
@@ -227,7 +215,7 @@ impl Chip8 {
 
             // Skips the next instruction if the key stored in VX is pressed.
             [0xE, x, 9, 0xE]    => {
-                match KeyboardDriver::int_to_keycode(self.registers[x as usize]) {
+                match KeyboardDriver::int_to_key(self.registers[x as usize]) {
                     Some(kc) => if key_state[&kc] {self.pc += 2;},
                     None => (),
                 }
@@ -235,7 +223,7 @@ impl Chip8 {
 
             // Skips the next instruction if the key stored in VX is not pressed
             [0xE, x, 0xA, 1]    => {
-                match KeyboardDriver::int_to_keycode(self.registers[x as usize]) {
+                match KeyboardDriver::int_to_key(self.registers[x as usize]) {
                     Some(kc) => {if !key_state[&kc] {self.pc += 2;}},
                     None => (),
                 }
@@ -267,29 +255,9 @@ impl Chip8 {
 
                 let dec = to_binary_encoded_decimal(self.registers[x as usize], 3);
 
-                for (i, dig) in dec.into_iter().rev().enumerate() {
+                for (i, dig) in dec.into_iter().enumerate() {
                     self.memory[(self.index_register as usize) + i] = dig;
                 }
-
-                let res0 = to_binary_encoded_decimal(self.registers[x as usize], 3);
-                println!("FX33 reg {} mem[i] {} mem[i+1] {} mem[i+2] {}",self.registers[x as usize], res0[0], res0[1], res0[2]);
-
-                let Vx = (op & 0x0F00) >> 8;
-                let mut value = self.registers[Vx as usize];
-            
-                // Ones-place
-                self.memory[(self.index_register + 2) as usize] = value % 10;
-                println!("ones correct {}", value % 10);
-                value /= 10;
-            
-                // Tens-place
-                self.memory[(self.index_register + 1) as usize] = value % 10;
-                println!("tens correct {}", value % 10);
-                value /= 10;
-            
-                // Hundreds-place
-                self.memory[(self.index_register) as usize] = value % 10;
-                println!("hund correct {}", value % 10);
             },
 
             // Stores from V0 to VX (including VX) in memory, starting at address I. 
@@ -360,7 +328,7 @@ impl Chip8 {
         let mut block = true;
         for (key, pressed) in key_state.iter() {
             if *pressed {
-                self.registers[reg_index] = KeyboardDriver::keycode_to_int(key).unwrap(); 
+                self.registers[reg_index] = KeyboardDriver::key_to_int(key).unwrap(); 
                 block = false; 
                 break
             }

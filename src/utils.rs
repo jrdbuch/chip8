@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "./util_tests.rs"]
+mod util_tests;
+
 pub fn get_nth_nibble(val: u16, n: u8) -> u16 {
     // n=0 is first nibble
     (val & (0xF << n*4)) >> n*4
@@ -15,6 +19,13 @@ pub fn get_first_n_nibbles(val: u16, n: u8) -> u16 {
 
 pub fn concat_bytes(b1: u8, b2: u8) -> u16 {
     ((b1 as u16) << 8) | b2 as u16
+}
+
+pub fn split_bytes(b: u16) -> (u8, u8) {
+    let b1 = ((b & 0xFF00) >> 8) as u8;
+    let b2 = (b & 0xFF) as u8;
+
+    (b1, b2)
 }
 
 pub struct ArithmeticOverflow{
@@ -40,18 +51,11 @@ pub fn subtract_with_overflow(a: u8, b: u8) -> ArithmeticOverflow {
 }
 
 pub fn to_binary_encoded_decimal(val: u8, len: usize) -> Vec<u8> {
-    let mut vec = Vec::new();
+    let mut vec = vec![0; len];
 
-    // let mut ret_arr: [u8; 3] = [0; 3];
-
-    for int_char in val.to_string().chars() {
-        vec.push(int_char.to_digit(10).unwrap() as u8);
-    }
-
-    // pad front with zeros
-    let pad_len = len - vec.len();
-    for _ in 0..pad_len {
-        vec.push(0);
+    for (i, c) in val.to_string().chars().rev().enumerate() {
+        vec[len-i-1] = c.to_digit(10).unwrap() as u8;
+        if len-i-1 == 0 {break};
     }
 
     vec
