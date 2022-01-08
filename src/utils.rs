@@ -21,13 +21,6 @@ pub fn concat_bytes(b1: u8, b2: u8) -> u16 {
     ((b1 as u16) << 8) | b2 as u16
 }
 
-pub fn split_bytes(b: u16) -> (u8, u8) {
-    let b1 = ((b & 0xFF00) >> 8) as u8;
-    let b2 = (b & 0xFF) as u8;
-
-    (b1, b2)
-}
-
 pub struct ArithmeticOverflow{
     pub val: u8,
     pub overflowed: bool,

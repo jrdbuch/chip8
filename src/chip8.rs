@@ -1,11 +1,8 @@
-use std::fmt;
-use std::path::Path;
-use std::fs;
 use rand::Rng;
-use crate::drivers::{KeyState, KeyboardDriver};
 use std::thread::sleep;
 use std::time::Duration;
 use crate::utils::*;
+use crate::drivers::keyboard::{KeyState, KeyboardDriver};
 
 #[cfg(test)]
 #[path = "./chip8_tests.rs"]
@@ -46,7 +43,7 @@ pub struct Chip8 {
     pc: u16,
     index_register: u16,
     delay_timer: u8,
-    sound_timer: u8,
+    pub sound_timer: u8,
     pub display_memory: [[u32; PIXEL_WIDTH]; PIXEL_HEIGHT],
     pub draw_flag: bool,
 }
@@ -90,8 +87,6 @@ impl Chip8 {
         // fetch next opcode at PC
         let opcode = self.get_next_opcode();
 
-        // println!("Opcode {:?}", opcode);
-
         // decode instruction
         self.handle_opcode(opcode, key_state);
         
@@ -126,8 +121,6 @@ impl Chip8 {
         
         let nn = get_first_n_nibbles(op, 2) as u8;
         let nnn = get_first_n_nibbles(op, 3);
-
-        // println!("NIBS {:#x} {:#x} {:#x} {:#x}", nibs[0], nibs[1], nibs[2], nibs[3]);
 
         match nibs {
             [0, 0, 0xE, 0]      => self.clear_screen(),
@@ -247,7 +240,6 @@ impl Chip8 {
             // Sets I to the location of the sprite for the character in VX.
             [0xF, x, 2, 9]      => {
                 self.index_register = (self.registers[x as usize] * 5) as u16; 
-                println!("FONT SPRITE {} {}", self.registers[x as usize], self.index_register);
             },
 
             // Stores the binary-coded decimal representation of VX,
@@ -293,7 +285,6 @@ impl Chip8 {
         self.draw_flag = true;
         let x_pos = self.registers[vx as usize] as usize % PIXEL_WIDTH;
         let y_pos = self.registers[vy as usize] as usize % PIXEL_HEIGHT;
-        // println!("x_pos {} y_pos {}", x_pos, y_pos);
 
         self.registers[0xF] = 0; // VF = 0
 
